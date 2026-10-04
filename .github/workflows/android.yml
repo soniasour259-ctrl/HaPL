@@ -1,44 +1,35 @@
-name: Android Build
+name: Build APK
 
 on:
   push:
-    branches: [ "main", "master" ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Java JDK
-        uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '17'
-          distribution: 'temurin'
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.x'
-          channel: 'stable'
+          channel: stable
 
-      - name: Create Flutter Project Structure if needed
+      - name: Generate Flutter project
         run: |
-          if [ ! -f "pubspec.yaml" ]; then
-            flutter create --project-name=hacker_game .
-          fi
+          cp lib/main.dart /tmp/main.dart
+          flutter create --platforms=android --project-name hack_sim .
+          cp /tmp/main.dart lib/main.dart
 
-      - name: Install dependencies
-        run: flutter pub get
+      - run: flutter pub get
+      - run: flutter build apk --release
 
-      - name: Build APK
-        run: flutter build apk --debug
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: hacker-game-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: hack-sim-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
           
